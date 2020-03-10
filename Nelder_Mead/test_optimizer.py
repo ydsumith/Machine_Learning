@@ -24,7 +24,9 @@ def create_initial_simplex(x,n,dh):
     return x_mat
 
 def sort_mats(cost_mat,x_mat,n):
-
+    ind = np.argsort(cost_mat, axis=0);
+    cost_mat = np.take_along_axis(cost_mat, ind, axis=0);
+    x_mat = np.take_along_axis(x_mat, ind, axis=0);
     return cost_mat,x_mat;
 
 def main():
