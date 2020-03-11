@@ -1,3 +1,6 @@
+# install opencv
+# works with webcam
+
 import cv2
 
 cv2.namedWindow("preview")
