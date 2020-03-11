@@ -43,42 +43,39 @@ def main():
     cost_mat = np.zeros((n+1,1));
     x_0 = np.zeros((n,1));
     
+    # step 1: estimate the cost of the current simplex
     x_mat = create_initial_simplex(x,n,dh);
     print("Here is the initial simplex\n",x_mat);
-
+    for i in range(n+1): # from x_i to x_n+1
+        cost_mat[i] = cost_estimate(x_mat[i][:],n);
+        
     while stddev > term_tol and cur_iter < MAX_ITER: # termination criteria
-        # step 1: estimate the cost of the current simplex
-        #-----------------------------------------
-        #----optimize below section---------
-        #-----------------------------------------
-        for i in range(n+1): # from x_i to x_n+1
-            cost_mat[i] = cost_estimate(x_mat[i][:],n);
-        #--print("\nCost value = \n", cost_mat);
         print("Current iteration = ", cur_iter);
         # sorting
         (cost_mat,x_mat) = sort_mats(cost_mat,x_mat,n);
-        #--print("\nSorted x values\n",x_mat);
-        #--print("\nsorted cost value = \n", cost_mat);
         stddev = np.std(cost_mat);        
         # step 2: centroid
         x_0 = np.sum(x_mat[0:n][:],axis=0)/n;
-        #step 3: reflection
+        # step 3: reflection
         x_n1 = x_mat[n][:]; # x_(n+1)
         x_r = x_0 + alpha*(x_0-x_n1);
         cost_r = cost_estimate(x_r,n);
         if cost_mat[0] <= cost_r and cost_r < cost_mat[n]:
-            x_mat[n][:] = x_r; # Obtaining a new simplex 
+            x_mat[n][:] = x_r; # Obtaining a new simplex
+            cost_mat[n] = cost_r;
         else:
             # step 4: Expansion
             if cost_r < cost_mat[0]:
                 x_e = x_0 + gamma*(x_r - x_0);
                 cost_e = cost_estimate(x_e,n);
                 if cost_e < cost_r:
-                    x_mat[n][:] = x_e; # Obtaining a new simplex 
+                    x_mat[n][:] = x_e; # Obtaining a new simplex
+                    cost_mat[n] = cost_e;
                     cur_iter += 1;
                     continue;
                 else:
-                    x_mat[n][:] = x_r;  # Obtaining a new simplex 
+                    x_mat[n][:] = x_r;  # Obtaining a new simplex
+                    cost_mat[n] = cost_r;
                     cur_iter += 1;
                     continue;
             #step 5 Contraction
@@ -87,12 +84,14 @@ def main():
                 cost_c = cost_estimate(x_c,n);
                 if cost_c < cost_mat[n]:
                     x_mat[n][:] = x_c;  # Obtaining a new simplex
+                    cost_mat[n] = cost_c;
                     cur_iter += 1;
                     continue;
                 #step 6 Shrink
                 else:
                     for i in range(1,n+1): # from x_2 to x_n+1
-                        x_mat[i][:] = x_mat[0][:] + sigma*(x_mat[i][:] - x_mat[0][:]);                    
+                        x_mat[i][:] = x_mat[0][:] + sigma*(x_mat[i][:] - x_mat[0][:]);
+                        cost_mat[i] = cost_estimate(x_mat[i][:],n);
         cur_iter += 1;
     # while ends here, terminate the whole business
     print("\nTerminating..\nstddev = ",stddev,", tolerance = ",term_tol);
