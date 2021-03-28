@@ -1,0 +1,61 @@
+# Below variables are expected through command line
+# 1. epsi
+# 2. sigma
+# 3. T1
+# reference epsi = 0.23838 kcal/mol and sigma = 3.4 Ang
+
+clear
+log log_runs.log 
+
+units real
+dimension 3
+atom_style atomic
+boundary p p p
+
+pair_style lj/cut 12.0
+
+variable N equal 1000
+variable equbrn1 equal 500
+variable runtime equal 250
+variable thermo_intvl equal 500
+variable box_lo equal -20
+variable box_hi equal 20
+variable dens equal "1000*density"
+
+region system block ${box_lo} ${box_hi} ${box_lo} ${box_hi} ${box_lo} ${box_hi}
+create_box 1 system
+create_atoms 1 random ${N} 3467534 system
+
+mass 1 39.95
+
+pair_coeff * * ${epsi} ${sigma}
+
+timestep 5.0
+neighbor 2.0 bin
+neigh_modify delay 0 every 1
+
+fix 1 all npt temp ${T1} ${T1} 500 iso ${pres} ${pres} 1000.0
+
+
+thermo ${thermo_intvl}
+thermo_style custom step temp etotal press enthalpy density lx
+thermo_modify flush yes norm yes
+
+minimize 1.0e-4 1.0e-6 100 1000
+min_style cg
+
+velocity all create ${T1} 492845 dist gaussian
+run 0                             # temperature may not be T1
+velocity all scale ${T1}         # now it should be
+
+
+#log log_equlibration_${epsi}_${sigma}.log 
+reset_timestep 0
+run ${equbrn1}
+
+#log log_production_${epsi}_${sigma}.log
+reset_timestep 0
+fix 2 all ave/time 1 ${runtime} ${runtime} v_dens file dens_${T1}.txt
+run ${runtime}
+
+#write_data data_final_${epsi}_${sigma}.data
