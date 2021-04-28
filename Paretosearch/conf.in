@@ -1,0 +1,51 @@
+units           real
+atom_style      atomic
+boundary        p p p
+#newton on
+
+pair_style morse 12.0
+
+print ${T1}
+variable low equal "-v_bs/2.0"
+variable high equal "v_bs/2.0"
+
+variable equbrn1 equal 5000
+variable runtime equal 5000
+variable PITVL equal 50
+variable dens equal density*1000
+
+region mybox block ${low} ${high} ${low} ${high} ${low} ${high} units box
+create_box 1 mybox
+create_atoms 1 random 10000 34133499 mybox
+mass 1 72.06112
+
+log waste_madhyam/logfile.log 
+
+pair_coeff * * 1.5 0.9 5.5
+
+timestep 5
+neighbor 1.0 bin
+neigh_modify delay 0 every 1
+
+fix 1 all nvt temp ${T1} ${T1} 500
+fix 2 all viscous 0.095097
+
+thermo ${PITVL}
+thermo_style custom step temp etotal enthalpy v_dens press
+thermo_modify flush yes norm yes
+
+minimize 1.0e-4 1.0e-6 100 1000
+
+velocity all create ${T1} 4928459 rot yes dist gaussian
+run 0                             # temperature may not be 300K
+velocity all scale ${T1}         # now it should be
+
+dump 1 all custom 500 waste_madhyam/dump_1_init.mol id x y z
+
+reset_timestep 0
+run ${equbrn1}
+
+reset_timestep 0
+run ${runtime}
+
+write_data waste_madhyam/final.data

@@ -1,0 +1,35 @@
+LAMMPS (8 Apr 2021)
+units           real
+atom_style      atomic
+boundary        p p p
+#newton on
+
+pair_style morse 12.0
+
+print ${T1}
+print 373.16
+373.16
+variable low equal "-v_bs/2.0"
+variable high equal "v_bs/2.0"
+
+variable equbrn1 equal 5000
+variable runtime equal 5000
+variable PITVL equal 50
+variable dens equal density*1000
+
+region mybox block ${low} ${high} ${low} ${high} ${low} ${high} units box
+region mybox block -69.20355 ${high} ${low} ${high} ${low} ${high} units box
+region mybox block -69.20355 69.20355 ${low} ${high} ${low} ${high} units box
+region mybox block -69.20355 69.20355 -69.20355 ${high} ${low} ${high} units box
+region mybox block -69.20355 69.20355 -69.20355 69.20355 ${low} ${high} units box
+region mybox block -69.20355 69.20355 -69.20355 69.20355 -69.20355 ${high} units box
+region mybox block -69.20355 69.20355 -69.20355 69.20355 -69.20355 69.20355 units box
+create_box 1 mybox
+Created orthogonal box = (-69.203550 -69.203550 -69.203550) to (69.203550 69.203550 69.203550)
+  2 by 2 by 2 MPI processor grid
+create_atoms 1 random 10000 34133499 mybox
+Created 10000 atoms
+  create_atoms CPU = 0.001 seconds
+mass 1 72.06112
+
+log waste_madhyam/logfile.log
